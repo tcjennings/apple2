@@ -40,6 +40,7 @@ PRINT
  JSR $FDDA
  RTS
 *
+*
 * Get HCOUNT
 * HCOUNT = COL + 24
 GETHCOUNT
@@ -48,6 +49,7 @@ GETHCOUNT
  ADC #24
  STA HCOUNT
  RTS
+*
 *
 * Get SUMZ
 * V3 + AUGEND + ADDEND
@@ -67,6 +69,7 @@ V3:0
  AND #$F ; keep only low 4 bits
  STA SUMZ
  RTS
+*
 *
 * Get AUGEND
 * H5* V3 H4 H3
@@ -121,6 +124,7 @@ AUGEND:0
  STA AUGEND ; final byte 0000 H5*,V3,H4,H3
  RTS
 *
+*
 * Get 1-bit Complement
 * With argument on A take complement
 ONEBITFLIP
@@ -128,6 +132,8 @@ ONEBITFLIP
  LDA #$1
  EOR TEMPZ ; result on A
  RTS
+*
+*
 * GETA10
 * bit2 of SCRNMSB = 80STORE + PAGE2'
 *
@@ -153,6 +159,7 @@ GETA10:0
  ORA SCRNMSB
  STA SCRNMSB 
  RTS 
+*
 *
 * GETA11
 * bit3 of SCRNMSB = 80STORE' & PAGE2
@@ -208,7 +215,7 @@ ASMLSB
  PHA
  LDA VCOUNT
  AND #$1 ; keep low bit
- ROR ; rotate b0 to C
+ LSR ; shift b0 to C
  ROR ; rotate C to b7
  STA TEMPZ
  PLA
@@ -218,4 +225,3 @@ ASMLSB
  ORA TEMPZ
  STA SCRNLSB
  RTS
-
