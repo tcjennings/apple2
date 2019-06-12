@@ -15,7 +15,7 @@ Place a vertical (Y) coordinate in memory location 254 ($FE) and a horizontal (X
 063C
 ```
 
-# SCREEN.ADDREESS.ML
+# SCREEN.ADDRESS.ML
 
 The assembled Machine Language object code for SCREEN.ADDRESS.S in a format acceptable for pasting into the Apple Monitor.
 
@@ -59,7 +59,7 @@ For example, screen position 12,20 (roughly the center point) is:
 
 ### Sum
 
-The 4-bit Sum value is taken from the following binary addition. Note the constant value in the addend and that "H5*" means the complement of H5. Any remaining carry bit is discarded.
+The 4-bit Sum value is taken from the following binary addition. Note the constant value in the addend and that "H5*" means the complement of H5. Any remaining carry bit (S4) is discarded.
 
 ```
              V3  Carry
@@ -187,5 +187,5 @@ The error is that the first ROR also pushes the Carry flag onto the byte, which 
 
 But there is another option, which is to replace the first ROR with an LSR, which will still pop bit 0 into the Carry flag but always pushes a 0 into bit 7, because it is a *shift* instead of a *rotate*.
 
-Which method is more optimal in terms of bytes and cycles? CLC, ROR, and LSR all use a single byte for the instruction and complete in 2 cycles, so using LSR and ROR is more efficient just because it can complete the logic in 2 bytes/4 cycles instead of 3 bytes/6 cycles.
+Which method is more optimal in terms of bytes and cycles? CLC, ROR, and LSR all use a single byte for the instruction and complete in 2 cycles, so using LSR and ROR is more efficient because it can complete the logic in 2 bytes/4 cycles instead of 3 bytes/6 cycles.
 
