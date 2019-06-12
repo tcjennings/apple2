@@ -19,7 +19,7 @@ Place a vertical (Y) coordinate in memory location 254 ($FE) and a horizontal (X
 
 The assembled Machine Language object code for SCREEN.ADDRESS.S in a format acceptable for pasting into the Apple Monitor.
 
-Save this listing with `BSAVE SCREEN.ADDRESS.ML,A$8000,L$120`.
+Save this listing with `BSAVE SCREEN.ADDRESS.ML,A$8000,L$10C`.
 
 # SCREEN.ADDRESS.BAS
 
