@@ -34,6 +34,14 @@ Save this listing with `BSAVE SCREEN.ADDRESS.ML,A$8000,L$10C`.
 
 An Applesoft BASIC program which demonstrates the SCREEN.ADDRESS.ML routine. Asks for a Y,X coordinate and uses the resulting memory address to draw a character at that screen memory location.
 
+The program always starts off on text page 1. After drawing the first specified coordinate, the program switches to a kind of command mode:
+
+- Press E to enter a new coordinate for the current display page.
+- Press P to switch display pages.
+- Press X to exit the program.
+
+To enter a coordinate for display page 2, first press P to switch, then E to enter a coordinate. Display page 2 will be drawn the inverse of page 1.
+
 # Operation
 
 ## Text Mode and Lo-Res Addressing
@@ -159,6 +167,18 @@ For this bit, the 80STORE switch is Prime (NOT 80STORE) and the boolean AND oper
 ```
 
 Again, for standard 40-column/lo-res mode with PAGE1, the A11 bit will be 0.
+
+### PAGE2 Addresses
+
+According to the A10 and A11 truth tables, when 80STORE is off but PAGE2 is on, the A11.A10 bit pair should be "10", and when PAGE2 is off, the bit pair should be "01". This is sufficient to produce base screen address MSB values of:
+
+```
+           A11.A10    MSB
+PAGE2 OFF       01  $0400
+PAGE2 ON        10  $0800
+```
+
+Further, it is not possible for PAGE2 to be "on" when 80STORE is "on" -- bits A11.A10 will always be "01" when 80STORE is "on".
 
 ### Finishing the Example
 
