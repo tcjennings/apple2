@@ -40,7 +40,13 @@ The program always starts off on text page 1. After drawing the first specified 
 - Press P to switch display pages.
 - Press X to exit the program.
 
-To enter a coordinate for display page 2, first press P to switch, then E to enter a coordinate. Display page 2 will be drawn the inverse of page 1.
+To enter a coordinate for display page 2, first press P to switch, then E to enter a coordinate. The program switches back to Page 1 to take input and show output. Press P to switch again to see the drawn character. Coordinates will continue to be calculated for Page 2 until a double-switch resets the current operating page.
+
+*Applesoft doesn't have PRINT routines for Page 2 so BASIC input and output can only happen on Page 1, whether you're looking at it or not.*
+
+This program starts by moving BASIC to address $6000 (24576) which prevents it from using any of the display buffers for program or variable storage. Ordinarily BASIC uses the text/low-res Page 2 memory for programs.
+
+This program implements a HOME function for the Page 2 display at $300 (768) which works by "clearing" the 4 memory pages starting at $800 with (inverse) SPC characters.
 
 # Operation
 
