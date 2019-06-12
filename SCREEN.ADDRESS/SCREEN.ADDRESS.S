@@ -127,40 +127,40 @@ AUGEND:0
 * V4 H5* V4 1
 *
 GETADDEND
-         LDA   #$1
-         PHA
-         LDA   VCOUNT
-         AND   #$10
+ LDA #$1
+ PHA
+ LDA VCOUNT
+ AND #$10
 ADV4:1
-         LSR
-         LSR
-         LSR
-         LSR
+ LSR
+ LSR
+ LSR
+ LSR
 ADV4:0
-         PHA
-         TAY
-         LDA   HCOUNT
-         AND   #$20       ; Get H5
+ PHA
+ TAY
+ LDA HCOUNT
+ AND #$20 ; Get H5
 ADH5:1
-         LSR
-         LSR
-         LSR
-         LSR
-         LSR
+ LSR
+ LSR
+ LSR
+ LSR
+ LSR
 ADH5:0
-         JSR   ONEBITFLIP ; H5* = 1 XOR H5
-         PHA
-         TYA              ; V4
-         LDX   #$3
+ JSR ONEBITFLIP ; H5* = 1 XOR H5
+ PHA
+ TYA ; V4
+ LDX #$3
 ADDEND:0
-         ASL
-         STA   TEMPZ
-         PLA
-         ORA   TEMPZ
-         DEX
-         BNE   ADDEND:0
-         STA   ADDEND     ; final byte 0000 V4,H5*,V4,1
-         RTS
+ ASL
+ STA TEMPZ
+ PLA
+ ORA TEMPZ
+ DEX
+ BNE ADDEND:0
+ STA ADDEND ; final byte 0000 V4,H5*,V4,1
+ RTS
 *
 *
 * Get 1-bit Complement
