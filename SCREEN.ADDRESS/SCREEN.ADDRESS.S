@@ -57,12 +57,11 @@ GETHCOUNT
 GETSUMZ
  LDA VCOUNT
  AND #$8 ; get V3
-V3:1
+SUMV3:1
  LSR
  LSR
  LSR ; move V3 to bit 0
-V3:0
- CLC
+SUMV3:0
  LSR ; pops V3 into C
  LDA AUGEND
  ADC ADDEND
@@ -123,6 +122,45 @@ AUGEND:0
  BNE AUGEND:0
  STA AUGEND ; final byte 0000 H5*,V3,H4,H3
  RTS
+*
+* Get ADDEND
+* V4 H5* V4 1
+*
+GETADDEND
+         LDA   #$1
+         PHA
+         LDA   VCOUNT
+         AND   #$10
+ADV4:1
+         LSR
+         LSR
+         LSR
+         LSR
+ADV4:0
+         PHA
+         TAY
+         LDA   HCOUNT
+         AND   #$20       ; Get H5
+ADH5:1
+         LSR
+         LSR
+         LSR
+         LSR
+         LSR
+ADH5:0
+         JSR   ONEBITFLIP ; H5* = 1 XOR H5
+         PHA
+         TYA              ; V4
+         LDX   #$3
+ADDEND:0
+         ASL
+         STA   TEMPZ
+         PLA
+         ORA   TEMPZ
+         DEX
+         BNE   ADDEND:0
+         STA   ADDEND     ; final byte 0000 V4,H5*,V4,1
+         RTS
 *
 *
 * Get 1-bit Complement
