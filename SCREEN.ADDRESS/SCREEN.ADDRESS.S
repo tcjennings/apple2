@@ -42,11 +42,12 @@ PRINT
 *
 *
 * Get HCOUNT
-* HCOUNT = COL + 24
+* HCOUNT = (COL + 24) XOR 32
 GETHCOUNT
- LDA HCOUNT
+ LDA HCOUNT ; Original user input
  CLC
  ADC #24
+ EOR #$20 ; flip H5 to H5*
  STA HCOUNT
  RTS
 *
@@ -101,7 +102,6 @@ H5:1
  LSR
  LSR
 H5:0
- JSR ONEBITFLIP ; H5* = 1 XOR H5
  TAY
  LDA VCOUNT
  AND #$8 ; Get V3
@@ -148,7 +148,6 @@ ADH5:1
  LSR
  LSR
 ADH5:0
- JSR ONEBITFLIP ; H5* = 1 XOR H5
  PHA
  TYA ; V4
  LDX #$3
@@ -160,15 +159,6 @@ ADDEND:0
  DEX
  BNE ADDEND:0
  STA ADDEND ; final byte 0000 V4,H5*,V4,1
- RTS
-*
-*
-* Get 1-bit Complement
-* With argument on A take complement
-ONEBITFLIP
- STA TEMPZ
- LDA #$1
- EOR TEMPZ ; result on A
  RTS
 *
 *
@@ -227,7 +217,7 @@ GETA11:AND
  RTS
 *
 *
-* ASMMSB
+* ASMMSB : Assemble MSB
 * 0 0 0 0 A11 A10 V2 V1
 *
 ASMMSB
@@ -239,7 +229,7 @@ ASMMSB
  RTS
 *
 *
-* ASMLSB
+* ASMLSB : Assemble LSB
 * V0 S3 S2 S1 S0 H2 H1 H0
 *
 ASMLSB

@@ -19,6 +19,8 @@ Place a vertical (Y) coordinate in memory location 254 ($FE) and a horizontal (X
 
 The assembled Machine Language object code for SCREEN.ADDRESS.S in a format acceptable for pasting into the Apple Monitor.
 
+Save this listing with `BSAVE SCREEN.ADDRESS.ML,A$8000,L$120`.
+
 # SCREEN.ADDRESS.BAS
 
 An Applesoft BASIC program which demonstrates the SCREEN.ADDRESS.ML routine. Asks for a Y,X coordinate and uses the resulting memory address to draw a character at that screen memory location.
@@ -78,8 +80,20 @@ For the 12,20 example, plugging in the bits from above provides an S of 0111:
  0*   1   0   1  Augend
  0    0*  0   1  Addend
 _______________
- 0    1    1  1
+ 0    1   1   1
 ```
+
+This is straightforward binary addition, but the same math for coordinates 0,0 get interesting (remember H=0+24 here, or `111000` after flipping H5):
+
+```
+              0  Carry
+ 1*   0   1   1  Augend
+ 0    1*  0   1  Addend
+_______________
+ 0    0   0   0
+ ```
+
+This math says that 11 + 5 = 0. This case demonstrates how discarding the final carry affects the outcome of the algorithm.
 
 ### Screen Addressing
 
@@ -189,3 +203,91 @@ But there is another option, which is to replace the first ROR with an LSR, whic
 
 Which method is more optimal in terms of bytes and cycles? CLC, ROR, and LSR all use a single byte for the instruction and complete in 2 cycles, so using LSR and ROR is more efficient because it can complete the logic in 2 bytes/4 cycles instead of 3 bytes/6 cycles.
 
+## Repeated Instructions
+
+There are times when an instruction like LSR is repeated multiple times, such as to move a bit from b5 to b0 requires 5 shifts to the right. These 5 instructions occupy 5 bytes and take 10 cycles to complete.
+
+Modern programming instills the idea that if you do anything more than once you should move that logic to a function or equivalent. Does this hold in Assembly?
+
+There could be a routine that performs LSR an arbitrary number of times:
+
+```
+REPLSR
+     LSR
+     DEX
+     BNE REPLSR
+     RTS
+```
+
+You would have the operand on the accumulator and put the number of desired shifts into the X register and JSR to this routine:
+
+```
+     ...
+     LDX #$5
+     JSR REPLSR
+     ...
+```
+
+But have you improved the program? The new routine occupies 5 bytes on its own, but calling it requires 5 bytes too! That's a constant value, too, no matter how many repetitions you plan to make, plus the overhead of pushing and pulling the return address to/from the stack.
+
+This is not to say repeated LSR instructions are not subject to optimization, it's just not in the usual modern way. There are only 8 bits in a 6502 register, so there's never a reason to LSR more than 7 times, and there's a point at which it's better to rotate to the left instead of shifting to the right.
+
+In fact, it could be better to set a threshold for LSR instructions such that 4 or fewer, just repeat the instruction, which is 4 bytes/8 cycles.
+
+It turns out 5 LSRs in a row is the worst case. Getting bit 5 into the bit 0 position takes 5x LSR (5 bytes / 10 cycles) but can be accomplished with the following instead:
+
+```
+     ...
+     ASL ; Shift b5 -> b6
+     ASL ; Shift b6 -> b7 
+     ASL ; Shift b7 -> C
+     ROL ; Rotate C -> b0
+     ...
+```
+
+Same result, but it takes 4 bytes and 8 cycles.
+
+Getting bits 6 or 7 into the bit 0 position is even easier, just drop the relevant number of ASL instructions.
+
+So: Getting an arbitrary bit to the least significant position? If it's bit 4 or lower, shift right. If it's bit 5 or higher, shift left then rotate. Worst case is 4 bytes/8 cycles for those two bits in the middle.
+
+## Flipping H5
+
+In the Augend and Addend, the complement of the H5 bit is used. Contrary to best practices, there is a routine labeled "ONEBITFLIP" to get this complement:
+
+```
+ONEBITFLIP
+ STA TEMPZ
+ LDA #$1
+ EOR TEMPZ ; result on A
+ RTS
+```
+
+This routine uses a zero-page location as a temporary register. First it moves the accumulator to this register (2 bytes/3 cycles), then it loads the value 1 on the accumulator (2 bytes/2 cycles), finally it performs `A XOR TEMPZ` (2 bytes/3 cycles). This budget ends up totalling 6 bytes/8 cycles not including the overhead required to jump into and return from the routine.
+
+This routine is called twice in the program, once within the GETAUGEND routine and once within GETADDEND, since these both use the H5 complement bit.
+
+What if instead, the H5 bit was pre-flipped? It's not used in its ordinary representation anywhere else in the program. There's already a routine that prepares the Horizontal Count byte:
+
+```
+GETHCOUNT
+ LDA HCOUNT
+ CLC
+ ADC #24
+ STA HCOUNT
+ RTS
+```
+
+This routine just takes what the user inputs as the X coordinate and adds 24 to get the Horizontal Count. We can add `HCOUNT XOR $20` to this routine and have H5 flipped to H5* from the start:
+
+```
+GETHCOUNT
+ LDA HCOUNT ; User input [0,39]
+ CLC
+ ADC #24 ; Add for horizontal count
+ EOR #$20 ; flip H5 to H5*
+ STA HCOUNT
+ RTS
+```
+
+This adds 2 bytes/2 cycles and saves a lot more than that.
