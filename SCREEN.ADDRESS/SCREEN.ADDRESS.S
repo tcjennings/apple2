@@ -218,6 +218,11 @@ GETA11:AND
 * ASMMSB : Assemble MSB
 * 0 0 0 0 A11 A10 V2 V1
 *
+* by ORing with VCOUNT
+* SCRNMSB 0000XX..
+*  VCOUNT ......XX
+* SCRNMSB 0000XXXX
+*
 ASMMSB
  LDA VCOUNT
  LSR ; pop off V0
@@ -229,6 +234,12 @@ ASMMSB
 *
 * ASMLSB : Assemble LSB
 * V0 S3 S2 S1 S0 H2 H1 H0
+*
+* by putting three bytes on the stack and ORing them together
+*  HCOUNT .....XXX
+*    SUMZ .XXXX...
+*  VCOUNT X.......
+* SCRNLSB XXXXXXXX
 *
 ASMLSB
  LDA HCOUNT
