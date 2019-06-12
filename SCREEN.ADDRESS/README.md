@@ -10,9 +10,18 @@ Supports 40-column text mode display address mapping.
 
 Place a vertical (Y) coordinate in memory location 254 ($FE) and a horizontal (X) coordinate in memory location 255 ($FF) and execute the routine at 32768 ($8000). The coordinates should be 0-based within the limits [0,23] for Y and [0,39] for X.
 
+*The program uses ROM routine `COUT` at $FDDA to print the calculated memory location.*
+
 ```
 ]POKE 254,12 : POKE 255,20 : CALL 32768
 063C
+```
+
+The resulting 16-bit memory address is stored in locations 30 ($1E) and 31 ($1F), least significant byte first as is standard.
+
+```
+]PRINT PEEK(31)*256+PEEK(30)
+1596
 ```
 
 # SCREEN.ADDRESS.ML
@@ -291,3 +300,8 @@ GETHCOUNT
 ```
 
 This adds 2 bytes/2 cycles and saves a lot more than that.
+
+# References
+
+- "11.9 The Video Display," _The Apple //c Reference Manual Volume 1_, page 233. Apple product A2L4030.
+- "The Video Display," _Apple II Reference Manual For //e Only_, page 152. Apple product A2L2005.
