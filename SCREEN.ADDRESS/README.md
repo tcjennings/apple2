@@ -105,9 +105,9 @@ Which refers to the soft switches for these characteristics, specifically:
 - RD80STORE ($C018 / #49176)
 - RDPAGE2 ($C01C / #49170)
 
-In these switches, only bit 7 matters. If it is a 1, the switch is "on" and if it is a 0 then the "switch" is off. In other words, the test `SWITCH > 127` determines the state of the switch.
+In these switches, only bit 7 matters. If it is a 1, the switch is "on" and if it is a 0 then the switch is "off". In other words, the test `SWITCH > 127` determines the state of the switch.
 
-For the A10 bit, the value of the RD80STORE switch is added with *NOT* PAGE2 (the "PAGE2-prime" indicator meaning the negation of PAGE2).
+For the A10 bit, the state of the RD80STORE switch is added with *NOT* PAGE2 (the "PAGE2-prime" indicator meaning the negation of PAGE2).
 
 This should result in a truth table:
 
@@ -148,7 +148,7 @@ V  X  X  X  0  1  1  0  0
 S  X  X  X  X  0  1  1  1
 ```
 
-Additionally, A10 will be 1 and A11 will be 0. Because both 80STORE and PAGE2 are in an "OFF" state.
+Additionally, A10 will be 1 and A11 will be 0. Because both 80STORE and PAGE2 are in an "Off" state.
 
 So, plugging all the bits into position, we get:
 
