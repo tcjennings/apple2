@@ -1,0 +1,221 @@
+SCRNLSB = $001E ; LSB of Screen Address result
+SCRNMSB = SCRNLSB+1 ; MSB of Screen Address result
+TEMPZ = $00FA ; Temp register on zero page
+AUGEND = TEMPZ+1
+ADDEND = AUGEND+1
+SUMZ = ADDEND+1
+VCOUNT = $00FE
+HCOUNT = VCOUNT+1
+RD80STORE = $C018
+RDPAGE2 = $C01C
+*
+ ORG $8000
+ CLD
+*
+INIT  ; Load all variables with 0
+ LDA #$0
+ STA TEMPZ
+ STA SCRNLSB
+ STA SCRNMSB
+ STA AUGEND
+ STA ADDEND
+ STA SUMZ
+*
+RUN
+ JSR GETHCOUNT
+ JSR GETA10
+ JSR GETA11
+ JSR GETAUGEND
+ JSR GETADDEND
+ JSR GETSUMZ
+ JSR ASMMSB
+ JSR ASMLSB
+ JSR PRINT
+ RTS
+*
+PRINT
+ LDA SCRNMSB
+ JSR $FDDA
+ LDA SCRNLSB
+ JSR $FDDA
+ RTS
+*
+* Get HCOUNT
+* HCOUNT = COL + 24
+GETHCOUNT
+ LDA HCOUNT
+ CLC
+ ADC #24
+ STA HCOUNT
+ RTS
+*
+* Get SUMZ
+* V3 + AUGEND + ADDEND
+*
+GETSUMZ
+ LDA VCOUNT
+ AND #$8 ; get V3
+V3:1
+ LSR
+ LSR
+ LSR ; move V3 to bit 0
+V3:0
+ CLC
+ LSR ; pops V3 into C
+ LDA AUGEND
+ ADC ADDEND
+ AND #$F ; keep only low 4 bits
+ STA SUMZ
+ RTS
+*
+* Get AUGEND
+* H5* V3 H4 H3
+*
+GETAUGEND
+ LDX HCOUNT
+ TXA
+ AND #$8 ; Get H3
+H3:1
+ LSR
+ LSR
+ LSR
+H3:0
+ PHA
+ TXA
+ AND #$10 ; Get H4
+H4:1
+ LSR
+ LSR
+ LSR
+ LSR
+H4:0
+ PHA
+ TXA
+ AND #$20 ; Get H5
+H5:1
+ LSR
+ LSR
+ LSR
+ LSR
+ LSR
+H5:0
+ JSR ONEBITFLIP ; H5* = 1 XOR H5
+ TAY
+ LDA VCOUNT
+ AND #$8 ; Get V3
+V3:1
+ LSR
+ LSR
+ LSR
+V3:0
+ PHA
+ TYA ; H5*
+ LDX #$3
+AUGEND:0
+ ASL
+ STA TEMPZ
+ PLA 
+ ORA TEMPZ
+ DEX
+ BNE AUGEND:0
+ STA AUGEND ; final byte 0000 H5*,V3,H4,H3
+ RTS
+*
+* Get 1-bit Complement
+* With argument on A take complement
+ONEBITFLIP
+ STA TEMPZ
+ LDA #$1
+ EOR TEMPZ ; result on A
+ RTS
+* GETA10
+* bit2 of SCRNMSB = 80STORE + PAGE2'
+*
+GETA10
+ CLC ; assume 80STORE = 0
+ BIT RD80STORE ; AND with A b7 lands in N (2)
+ BPL GETA10:NO80 ; N=0 means 80STORE = 0
+GETA10:ON80  ; (3)
+ SEC ; Set carry if 80STORE = 1
+GETA10:NO80
+ LDA #$0 ; assume PAGE2' = 0 
+ BIT RDPAGE2 ;  b7 lands in N (1)
+ BMI GETA10:ONP2 ; if N=1 skip ahead
+GETA10:NOP2
+ LDA #$1 ; N=0 then PAGE2' = 1
+GETA10:ONP2
+ ADC #$0 ; Adds carry (80STORE) to A (PAGE2')
+ CMP #$0 ; A = 0,1,2 
+ BEQ GETA10:0 ; if A = 0
+GETA10:1
+ LDA #$4 ; A10 = 1 if A >= 0
+GETA10:0
+ ORA SCRNMSB
+ STA SCRNMSB 
+ RTS 
+*
+* GETA11
+* bit3 of SCRNMSB = 80STORE' & PAGE2
+*
+GETA11
+ SEC ; Load 1 on C assumes 80STORE'=1
+ BIT RD80STORE ; b7 lands in N
+ BPL GETA11:NO80 ; N=0 means 80STORE'=0
+ CLC ; Load 0 on X if 80STORE'=0
+GETA11:NO80
+ LDA #$0 ; Assume PAGE2=0
+ BIT RDPAGE2
+ BPL GETA11:NOP2 ; N=0 means PAGE2=0
+ LDA #$1 ; N=1 means PAGE2=1
+GETA11:NOP2
+ LDX $0
+ BCC GETA11:AND ; if C not set
+ INX
+GETA11:AND
+ STX TEMPZ ; TEMPZ is (80STORE'=) 0 or 1
+ AND TEMPZ ; A is (PAGE2=) 0 or 1
+ ASL
+ ASL
+ ASL ; Shift result to B3 position
+ ORA SCRNMSB
+ STA SCRNMSB
+ RTS
+*
+*
+* ASMMSB
+* 0 0 0 0 A11 A10 V2 V1
+*
+ASMMSB
+ LDA VCOUNT
+ LSR ; pop off V0
+ AND #$3 ; keep bottom 2 bits
+ ORA SCRNMSB
+ STA SCRNMSB
+ RTS
+*
+*
+* ASMLSB
+* V0 S3 S2 S1 S0 H2 H1 H0
+*
+ASMLSB
+ LDA HCOUNT
+ AND #$7 ; Keep low 3 bits
+ PHA
+ LDA SUMZ
+ ASL
+ ASL
+ ASL ; move SUMZ bits to 01111000
+ PHA
+ LDA VCOUNT
+ AND #$1 ; keep low bit
+ ROR ; rotate b0 to C
+ ROR ; rotate C to b7
+ STA TEMPZ
+ PLA
+ ORA TEMPZ
+ STA TEMPZ
+ PLA
+ ORA TEMPZ
+ STA SCRNLSB
+ RTS
+
