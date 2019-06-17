@@ -52,7 +52,7 @@ This program implements a HOME function for the Page 2 display at $300 (768) whi
 
 ## Text Mode and Lo-Res Addressing
 
-Screen display address has a MSB and an LSB, i.e., $0400 has MSB $40 and LSB $00.
+Screen display address has a MSB and an LSB, i.e., $0400 has MSB $04 and LSB $00.
 
 This address is made up of 16 bits across the two bytes:
 
