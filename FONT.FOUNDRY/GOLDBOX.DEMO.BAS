@@ -1,6 +1,7 @@
 10 HIMEM:34816
 20 GOSUB 1000
 100 REM PUT FANCY TEXT ON THE HGR SCREEN
+105 REM CODE BF (Border Finial) BV (Border Vertical) BA/B (Border Horizontal A/B)
 110 BF$ = CHR$(96) : BV$ = CHR$(101) : BA$ = CHR$(113) : BB$ = CHR$(119)
 220 HGR2 : & HOME
 230 & WINDOW(0,0 TO 39,23)
